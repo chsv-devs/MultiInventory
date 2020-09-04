@@ -1,0 +1,5 @@
+name: MultiInventory
+main: com.hancho.multiinventory.MultiInventory
+version: 1.0.0
+author: Hancho
+api: [1.0.0]
