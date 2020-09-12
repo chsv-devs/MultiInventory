@@ -95,30 +95,30 @@ public class MultiInventory extends PluginBase implements Listener {
         return new InventoryData(invItems, offHandItems, armorItems);
     }
 
-    public void saveMultiInv(Level level, String playerName, PlayerInventory inv, Map<Integer, Item> offHand){
-        this.saveInv(this.multiInvPath + level.getName() + "/" + playerName + ".yml", inv, offHand);
+    public void saveMultiInv(Level level, String playerName, InventoryData ivd){
+        this.saveInv(this.multiInvPath + level.getName() + "/" + playerName + ".yml", ivd);
     }
 
-    public void saveDefInv(String playerName, PlayerInventory inv, Map<Integer, Item> offHand){
-        this.saveInv(this.defInvPath + playerName + ".yml", inv, offHand);
+    public void saveDefInv(String playerName, InventoryData ivd){
+        this.saveInv(this.defInvPath + playerName + ".yml", ivd);
     }
 
-    public void saveInv(String path, PlayerInventory inv, Map<Integer, Item> offHand){
+    public void saveInv(String path, InventoryData ivd){
         LinkedHashMap<Integer, String> invItem = new LinkedHashMap<>();
         LinkedHashMap<Integer, String> armorItem = new LinkedHashMap<>();
         LinkedHashMap<Integer, String> offHandItem = new LinkedHashMap<>();
         Config data = new Config(path);
 
 
-        inv.getContents().forEach((k, i) -> {
+        ivd.getInv().forEach((k, i) -> {
             invItem.put(k, itemToString(i));
         });
-        Item[] armorContents = inv.getArmorContents();
+        Item[] armorContents = ivd.getArmor();
         for(int i = 0; i < 4; i++) {
             if(armorContents[i] == null) continue;
             armorItem.put(i,itemToString(armorContents[i]));
         }
-        offHand.forEach((k, i) -> {
+        ivd.getOffHand().forEach((k, i) -> {
             offHandItem.put(k, itemToString(i));
         });
 
@@ -146,15 +146,15 @@ public class MultiInventory extends PluginBase implements Listener {
             this.queue.add(player.getName());
             player.sendTitle("처리중", "잠시만 기다려주세요", 1, 30, 1);
 
-            PlayerInventory clonedInv = new PlayerInventory(player);
             PlayerInventory playerInv = player.getInventory();
-            clonedInv.setContents(playerInv.getContents());
-            clonedInv.setArmorContents(playerInv.getArmorContents());
-            Map<Integer, Item> offHand = player.getInventory().getHolder().getOffhandInventory().getContents();
+
+            InventoryData ivd = new InventoryData( new LinkedHashMap<>(playerInv.getContents())
+                    , new LinkedHashMap<>(player.getOffhandInventory().getContents() )
+                    , player.getInventory().getArmorContents().clone());
             playerInv.clearAll();
             Thread thread = new Thread(() -> {
-                if(toDef) this.saveMultiInv(from, player.getName(), clonedInv, offHand);
-                else this.saveDefInv(player.getName(), clonedInv, offHand);
+                if(toDef) this.saveMultiInv(from, player.getName(), ivd);
+                else this.saveDefInv(player.getName(), ivd);
 
                 InventoryData invData;
                 if(toDef) invData = getDefInv(player.getName());
