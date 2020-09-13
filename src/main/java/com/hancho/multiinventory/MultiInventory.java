@@ -147,11 +147,10 @@ public class MultiInventory extends PluginBase implements Listener {
             player.sendTitle("처리중", "잠시만 기다려주세요", 1, 30, 1);
 
             PlayerInventory playerInv = player.getInventory();
-
             InventoryData ivd = new InventoryData( new LinkedHashMap<>(playerInv.getContents())
                     , new LinkedHashMap<>(player.getOffhandInventory().getContents() )
                     , player.getInventory().getArmorContents().clone());
-            playerInv.clearAll();
+
             Thread thread = new Thread(() -> {
                 if(toDef) this.saveMultiInv(from, player.getName(), ivd);
                 else this.saveDefInv(player.getName(), ivd);
@@ -159,15 +158,16 @@ public class MultiInventory extends PluginBase implements Listener {
                 InventoryData invData;
                 if(toDef) invData = getDefInv(player.getName());
                 else invData = getMultiInv(target, player.getName());
+
                 playerInv.setContents(invData.getInv());
                 playerInv.setArmorContents(invData.getArmor());
                 playerInv.getHolder().getOffhandInventory().setContents(invData.getOffHand());
+
                 this.getServer().getLogger().info(playerInv.getHolder().getOffhandInventory().getSize() + "");
                 queue.remove(player.getName());
                 player.sendTitle("§o이동완료", "§d기존 인벤토리가 저장되었어요", 1, 15, 1);
             });
             thread.start();
-            //ev.setCancelled(true);
         }
     }
 }
